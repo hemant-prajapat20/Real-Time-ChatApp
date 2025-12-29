@@ -21,7 +21,7 @@ const isLogin = async(req,res,next)=>{
     }
     catch(error){
         console.log(`error in isLogin middleware ${error.message}`);
-        res.status(500).send({
+        res.status(401).send({
             success: false,
             message: error
         })
