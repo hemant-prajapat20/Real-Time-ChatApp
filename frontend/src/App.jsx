@@ -6,7 +6,6 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Route ,Routes } from "react-router-dom";
 import { VerifyUser } from "./utils/VerifyUser.jsx";
 
-
 function App(){
   
   return(
