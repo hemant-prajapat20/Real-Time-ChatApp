@@ -1,6 +1,6 @@
 
 import React, {useEffect, useState,useRef} from 'react';
-import userConversation from '../../../Zustand/UseConversation';
+import userConversation from '../../Zustand/UseConversation';
 import {useAuth} from '../../context/AuthContext';
 import { RiMessage3Fill } from "react-icons/ri";
 import {IoArrowBackSharp,IoSend} from 'react-icons/io5';
