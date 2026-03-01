@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Login = () =>{
+const Login = ()=>{
 
 const navigate = useNavigate();
 const {setAuthUser} = useAuth();
@@ -53,7 +53,7 @@ const handelSubmit = async(e)=>{
  </h1>
         
         
-<form onSubmit={handelSubmit} className='flex flex-col text-black'>
+<form onSubmit={handelSubmit} className='flex flex-col text-black m-2 gap-4'>
   <div>
     <label className='label p-2'>
     <span className='font-bold text-gray-950 text-xl label-text'>Email :</span>
@@ -65,7 +65,7 @@ const handelSubmit = async(e)=>{
    onChange={handelInput}
    placeholder='Enter your email'
    required
-   className='w-full input input-bordered h-10' />
+   className='w-full input input-bordered h-10 p-2 text-white' />
 </div>
 
 
@@ -79,7 +79,7 @@ const handelSubmit = async(e)=>{
       onChange={handelInput}
       placeholder='Enter your password'
       required
-      className='w-full input input-bordered h-10' 
+      className='w-full input input-bordered h-10 p-2  text-white' 
       />
  </div>
 

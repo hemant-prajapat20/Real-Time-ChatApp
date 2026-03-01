@@ -125,14 +125,13 @@ const Register = ()=> {
     <label className='label p-2' >
      <span className='font-bold text-gray-950 text-xl label-text'>Confirm Password :</span>
     </label>
-
      <input
        id='confpassword'
        type='text'
        onChange={handelInput}
        placeholder='  Enter Confirm password'
        required
-       className='w-full input input-bordered h-10' />
+       className=' w-full input input-bordered h-10 p-2 m-1' />
     </div>
 
  <div id='gender' className="flex gap-2">
@@ -142,7 +141,7 @@ const Register = ()=> {
     <input 
       onChange={()=>selectGender('male')}
       checked={inputData.gender === 'male'}
-      type='checkbox' className="checkbox checkbox-info"/>
+      type='checkbox' className="checkbox checkbox-info p-1"/>
       </label>
 
     <label className="cursor-pointer label flex gap-2">
@@ -150,7 +149,7 @@ const Register = ()=> {
     <input 
      checked={inputData.gender === 'female'}
      onChange={()=>selectGender('female')}
-     type='checkbox' className="checkbox checkbox-info"/>
+     type='checkbox' className="checkbox checkbox-info p-1 m-1"/>
      </label>
   </div>
 
