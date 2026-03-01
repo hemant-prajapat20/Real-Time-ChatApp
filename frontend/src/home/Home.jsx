@@ -19,10 +19,10 @@ const Home = () =>{
 
 
   return (
-    <div className='flex justify-between min-w-full md:min-w-[550px] md:max-w-[65%]
-      px-2 h-[95%] md:h-full rounded-xl shadow-lg bg-gray-400 bg-clip-padding
-      backdrop-filter backdrop-blur-lg bg-opacity-0'
-      >
+    <div className="
+  flex w-full max-w-7xl mx-auto  h-[92vh] md:h-[95vh] rounded-2xl shadow-2xl
+  bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden
+">
 
     <div className={`w-full py-2 md:flex ${isSidebarVisible ? '' : 'hidden'}`}>
     <Sidebar onSelectUser={handelUserSelect}/>

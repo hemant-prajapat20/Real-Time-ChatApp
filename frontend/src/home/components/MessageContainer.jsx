@@ -111,14 +111,13 @@ useEffect(() => {
 
  return (
 //chat backround
-<div className=' md:min-w-[500px] h-[99%] flex flex-col py-2
-  relative overflow-hidden  bg-gradient-to-br from-[#0a2540]
-   via-[#0f3d5e] to-[#1e5fa3] '>
+<div className="md:min-w-[500px] h-full flex flex-col py-2 relative overflow-hidden
+bg-gradient-to-br from-[#0a2540] via-[#0f3d5e] to-[#1e5fa3]">
 
 {/* // chat jb empty state me hoga */}
 
    {selectedConversation === null ? (
-    <div className='flex items-center justify-center w-full h-full'>
+    <div className='flex items-center justify-center w-full h-full px-4'>
       <div className='px-4 text-center text-2xl text-gray-950 font-semibold 
                 flex flex-col items-center gap-2'>
      <p className='text-2xl'>Welcome!!👋 {authUser.username}😉</p>
@@ -130,37 +129,37 @@ useEffect(() => {
      <>
 
      {/* chat screen ka header */}
-  <div className='flex justify-between gap-1 bg-sky-600 md:px-2 rounded-lg h-12 md:h-12'>
-    <div className='flex gap-2 md:justify-between items-center w-full'>
+<div className="flex items-center justify-between bg-sky-600 px-2 rounded-t-lg h-14 shadow">
+  <div className="flex items-center gap-3 w-full">
+    
      <div className='md:hidden ml-1 self-center'>
-         <button onClick={() =>onBackUser(true)} className='bg-white rounded-full px-2 py-1 self-center'>
+         <button onClick={() =>onBackUser(true)} className='bg-white p-1 rounded-full shadow'>
          <IoArrowBackSharp size={25} color='black'
          />
      </button>
     </div>
 
-    <div className='flex justify-between mr-2 gap-2'>
-       <div className='self-center'>
-<img
-  src={selectedConversation?.profilepic || "/avatar.png"} alt="user"
-  className="rounded-full w-8 h-8 md:w-10 md:h-10 object-cover border border-white"/>
+     {/* Profile + Name */}
+    <div className="flex items-center gap-2">
+      <img
+        src={selectedConversation?.profilepic || "/avatar.png"}
+        alt="user"
+        className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-white"
+      />
+      <span className="text-white font-semibold text-sm md:text-lg">
+        {selectedConversation?.username}
+      </span>
     </div>
-
-      <span className='text-gray-950 self-center text-sm md:text-xl font-bold'>
-       {selectedConversation?.username}
-       </span>
-     </div>
-   </div>
+  </div>
 </div>
 
     {/* message ke liye   */}
  <div className='flex-1 overflow-auto'>
                       
    {loading && (
-     <div className="flex w-full h-full flex-col items-center justify-center gap-4 bg-transparent">
-<div className="loading loading-spinner">
-</div>
-     </div>
+    <div className="flex justify-center items-center h-full">
+      <div className="loading loading-spinner text-sky-600"></div>
+    </div>
    )}
 
 
@@ -209,23 +208,31 @@ useEffect(() => {
 )}
 
 
- <form onSubmit={handelSubmit} className='rounded-full text-black'>
+ <form onSubmit={handelSubmit} className='rounded-full text-black flex items-center gap-2 bg-white px-3 py-1 mx-4 mb-2'>
+  
 {/* emoji ke liye */}
-<div className='w-[98%] mx-auto rounded-full flex items-center bg-white'>
+<div className='w-[98%] mx-auto rounded-full flex items-center bg-white '>
   <button type="button"
  onClick={() => setShowEmoji(!showEmoji)}
  className="px-2">
-  <BsEmojiSmile size={22} className="text-gray-600 hover:text-sky-600" />
+  <BsEmojiSmile size={25} className="text-gray-600 hover:text-sky-600" />
 </button>
 
    <input value={sendData} onChange={handelMessages} required id='message' type='text' 
-  className='w-full bg-transparent outline-none px-4 py-1 rounded-full'/>
-     <button type='submit'>
-       {sending ? <div className='loading loading-spinner'></div>:
-       <IoSend size={25}
-       className='text-sky-700 cursor-pointer rounded-full bg-gray-800 w-10 h-auto p-1'/>
-       }
-     </button>
+  className='w-full bg-transparent outline-none px-4 py-1 rounded-full'
+  />
+
+
+{/* send button */}
+    <button type="submit">
+      {sending ? (
+        <div className="loading loading-spinner text-sky-600 "></div>
+      ) : (
+        <IoSend size={28}
+          className="text-white bg-sky-600 rounded-full p-1 hover:bg-sky-700"
+        />
+      )}
+    </button>
      </div>
      </form>
    </>

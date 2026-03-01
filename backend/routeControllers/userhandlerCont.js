@@ -44,9 +44,7 @@ export const getCurrentChatters=async(req,res)=>{
         const otherparticipants = conversation.participants.filter(id => id && id.toString() !== currentUserID.toString());
         return[...ids, ...otherparticipants];
      },[])
-   //   const otherParticipantsIDS = participantsIDS.filter(id=> id.toString()!==currentUserID.toString());
-   //   const user = await User.find({_id:{$in:otherParticipantsIDS}}).select("-password").select("-email");
-   //   const users= otherParticipantsIDS.map(id=> user.find(user=> user._id.toString() === id.toString()));
+   
      const users = await User.find({
   _id: { $in: participantsIDS }
 })

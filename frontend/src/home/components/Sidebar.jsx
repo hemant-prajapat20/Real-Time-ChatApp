@@ -124,8 +124,8 @@ const Sidebar = ({ onSelectUser }) =>{
  }
 
 return(
-  <div className='h-full w-auto px-1'>
-   <div className='flex justify-between gap-2'>
+  <div className='h-full w-full px-2 flex flex-col'>
+   <div className='flex justify-between items-center gap-2'>
     <form onSubmit={handelSearchSubmit} className='w-auto flex items-center justify-between bg-white rounded-full'>
       <input
     value={searchInput}
@@ -211,7 +211,7 @@ return(
    <div className={`avatar ${isOnline[index] ? 'online':''}`}>
      <div className="w-12 rounded-full">
        <img src={user.profilepic} alt='user.img'
-    className='self-center h-12 w-12 rounded-full object-cover border border-lime-700 '/>
+    className='h-11 w-11 object-cover border-2 border-lime-600 rounded-full'/>
 
     </div>
   </div>
@@ -237,11 +237,13 @@ return(
     </div>
  </div>
 
+      {/* Logout Section */}
   <div className='mt-auto px-1 py-1 flex'>
-    <button onClick={handelLogOut} className='hover:bg-red-600  w-10 cursor-pointer hover:text-white rounded-lg'>
+    <button onClick={handelLogOut} className="p-2 rounded-lg hover:bg-red-600 hover:text-white transition"
+>
      <BiLogOut size={25} />
     </button>
-     <p className='text-sm py-1'>Logout</p>
+     <p className='text-lg py-2 '>Logout</p>
   </div>
   </>
  )}
