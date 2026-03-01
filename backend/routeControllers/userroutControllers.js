@@ -1,6 +1,6 @@
 import User from "../Models/userModels.js";
 import bcryptjs from 'bcryptjs';
-import jwtToken from "../utils/jwtwebtoken.js";
+import jwtToken from "../utils/jwtwebToken.js";
 
 // new user register
 export const userRegister=async(req,res)=>{
