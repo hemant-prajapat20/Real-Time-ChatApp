@@ -4,7 +4,7 @@ import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Route ,Routes } from "react-router-dom";
 import { VerifyUser } from "./utils/VerifyUser.jsx";
-import Login from "./login/login.jsx";
+import Login from "./login/LoginPage.jsx";
 
 function App(){
   
