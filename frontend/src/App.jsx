@@ -1,5 +1,5 @@
 import Home from "./home/Home.jsx";
-import Register from "./register/Register.jsx";
+import Register from "./register/RegisterPage.jsx";
 import { ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Route ,Routes } from "react-router-dom";
