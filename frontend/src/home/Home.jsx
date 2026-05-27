@@ -31,7 +31,7 @@ const Home = () =>{
     <div className={`divider divider-horizontal px-3 md:flex
       ${isSidebarVisible ? '' : 'hidden'} ${selectedUser ? 'block' : 'hidden'}`}></div>
    
-    <div className={`flex-auto ${selectedUser ? '' : 'hidden md:flex'} bg-gray-200 `}>
+    <div className={`flex-auto ${selectedUser ? '' : 'hidden md:flex'} bg-transparent`}>
     <MessageContainer onBackUser={handelShowSidebar}/>
     </div>
 

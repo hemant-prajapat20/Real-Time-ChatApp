@@ -28,35 +28,55 @@ export const getUserBySearch=async(req,res)=>{
     }
 }
 
-export const getCurrentChatters=async(req,res)=>{
-   try{
-      const currentUserID = req.user._id.toString();
-     const currentChatters=await Conversation.find({
-        participants:currentUserID
-     }).sort({
-        updatedAt:-1
-     });
+export const getCurrentChatters = async (req, res) => {
+  try {
+    const currentUserID = req.user._id.toString();
+    const conversations = await Conversation.find({
+      participants: currentUserID
+    })
+    .sort({ updatedAt: -1 })
+    .populate({
+      path: "messages",
+      options: { sort: { createdAt: -1 }, limit: 1 }
+    })
+    .populate({
+      path: "participants",
+      select: "-password -email"
+    });
 
-     if(!currentChatters || currentChatters.length === 0) 
+    if (!conversations || conversations.length === 0) {
       return res.status(200).send([]);
-      
-     const participantsIDS = currentChatters.reduce((ids,conversation)=>{
-        const otherparticipants = conversation.participants.filter(id => id && id.toString() !== currentUserID.toString());
-        return[...ids, ...otherparticipants];
-     },[])
-   
-     const users = await User.find({
-  _id: { $in: participantsIDS }
-})
-.select("-password")
-.select("-email");
-   res.status(200).send(users);
     }
-    catch(error){
-          res.status(500).send({
-            success: false,
-            message: error
-          })
-          console.log(error);
-    }
-}
+
+    const chatters = conversations.map((convo) => {
+      const otherParticipant = convo.participants.find(
+        (p) => p && p._id.toString() !== currentUserID
+      );
+      if (!otherParticipant) return null;
+
+      const lastMsg = convo.messages && convo.messages.length > 0 ? convo.messages[0] : null;
+
+      return {
+        _id: otherParticipant._id,
+        fullname: otherParticipant.fullname,
+        username: otherParticipant.username,
+        gender: otherParticipant.gender,
+        profilepic: otherParticipant.profilepic,
+        lastMessage: lastMsg ? {
+          message: lastMsg.message,
+          senderId: lastMsg.senderId,
+          createdAt: lastMsg.createdAt
+        } : null,
+        updatedAt: convo.updatedAt
+      };
+    }).filter(Boolean);
+
+    res.status(200).send(chatters);
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: error.message || error
+    });
+    console.log(error);
+  }
+};

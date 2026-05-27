@@ -48,25 +48,55 @@ res.status(201).send(newMessages);
  }
 
 
- export const getMessages= async(req,res)=>{
-    try{
-      const {id:reciverId}= req.params;
-      const senderId=req.user._id;
+  export const getMessages= async(req,res)=>{
+     try{
+       const {id:reciverId}= req.params;
+       const senderId=req.user._id;
 
-      const chats=await Conversation.findOne({
-        participants:{$all:[senderId,reciverId]}
-      }).populate("messages");
+       const chats=await Conversation.findOne({
+         participants:{$all:[senderId,reciverId]}
+       }).populate("messages");
 
-      if(!chats) return res.status(200).send([]);
-      const message = chats.messages;
-      res.status(200).send(message);
+       if(!chats) return res.status(200).send([]);
+       const message = chats.messages;
+       res.status(200).send(message);
 
+     }
+     catch(error){
+         res.status(500).send({
+             success: false,
+             message: error
+           })
+           console.log(error); 
+     }
+  }
+
+  export const clearMessages = async (req, res) => {
+    try {
+      const { id: otherUserId } = req.params;
+      const currentUserId = req.user._id;
+
+      const chats = await Conversation.findOne({
+        participants: { $all: [currentUserId, otherUserId] }
+      });
+
+      if (!chats) {
+        return res.status(404).send({ success: false, message: "Conversation not found" });
+      }
+
+      // Delete all messages in the conversation from the Message collection
+      await Message.deleteMany({ _id: { $in: chats.messages } });
+
+      // Empty the messages reference array
+      chats.messages = [];
+      await chats.save();
+
+      res.status(200).send({ success: true, message: "Chat cleared successfully" });
+    } catch (error) {
+      res.status(500).send({
+        success: false,
+        message: error.message || error
+      });
+      console.log(error);
     }
-    catch(error){
-        res.status(500).send({
-            success: false,
-            message: error
-          })
-          console.log(error); 
-    }
- }
+  };

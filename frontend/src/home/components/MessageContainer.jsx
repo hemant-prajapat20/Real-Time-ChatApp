@@ -1,245 +1,379 @@
-
-import React, {useEffect, useState,useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import userConversation from '../../Zustand/UseConversation';
-import {useAuth} from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { RiMessage3Fill } from "react-icons/ri";
-import {IoArrowBackSharp,IoSend} from 'react-icons/io5';
+import { IoArrowBackSharp, IoSend } from 'react-icons/io5';
+import { BsEmojiSmile, BsTrash } from "react-icons/bs";
 import axios from 'axios';
-import {useSocketContext} from '../../context/SocketContext';
+import { useSocketContext } from '../../context/SocketContext';
 import notify from '../../assets/sound/notification.wav';
 import EmojiPicker from "emoji-picker-react";
-import { BsEmojiSmile } from "react-icons/bs";
+import { toast } from 'react-toastify';
 
+const MessageContainer = ({ onBackUser }) => {
+  const { messages, selectedConversation, setMessage, setSelectedConversation } = userConversation();
+  const { socket, onlineUser } = useSocketContext();
+  const { authUser } = useAuth();
+  
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendData, setSendData] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
+  
+  // Custom Clear Chat modal state
+  const [showClearModal, setShowClearModal] = useState(false);
+  
+  const lastMessageRef = useRef();
+  const emojiPickerRef = useRef();
 
-const MessageContainer =({ onBackUser }) =>{
-    const {messages,selectedConversation,setMessage,setSelectedConversation} = userConversation();
-    const {socket} = useSocketContext();
-    const { authUser } = useAuth();
-    const [loading, setLoading] =useState(false);
-    const [sending , setSending] =useState(false);
-    const [sendData , setSnedData] =useState("")
-    const lastMessageRef = useRef();
-    const [isTyping, setIsTyping] = useState(false);
-    const [showEmoji, setShowEmoji] = useState(false);
+  // Emoji picker click outside listener
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmoji(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-//emoji ke liye
-const handleEmojiClick =(emojiData) =>{
-  setSnedData(prev => prev + emojiData.emoji);
+  const handleEmojiClick = (emojiData) => {
+    setSendData(prev => prev + emojiData.emoji);
+  };
+
+  // Socket: typing state
+  useEffect(() => {
+    socket?.on("typing", () => setIsTyping(true));
+    socket?.on("stopTyping", () => setIsTyping(false));
+    return () => {
+      socket?.off("typing");
+      socket?.off("stopTyping");
+    };
+  }, [socket]);
+
+  // Socket: receive new messages
+  useEffect(() => {
+    const handleNewMessage = (newMessage) => {
+      // Only append if it's for the currently open conversation
+      if (selectedConversation && newMessage.senderId === selectedConversation._id) {
+        const sound = new Audio(notify);
+        sound.play().catch(e => console.log("Audio play error:", e));
+        setMessage([...messages, newMessage]);
+      }
+    };
+
+    socket?.on("newMessage", handleNewMessage);
+    return () => socket?.off("newMessage", handleNewMessage);
+  }, [socket, setMessage, messages, selectedConversation]);
+
+  // Auto scroll on new messages
+  useEffect(() => {
+    setTimeout(() => {
+      lastMessageRef?.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  }, [messages, isTyping]);
+
+  // Fetch conversation messages
+  useEffect(() => {
+    const getMessages = async () => {
+      setLoading(true);
+      try {
+        const get = await axios.get(`/api/message/${selectedConversation?._id}`);
+        const data = await get.data;
+        if (data.success === false) {
+          console.log(data.message);
+        } else {
+          setMessage(data);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (selectedConversation?._id) {
+      getMessages();
+      setIsTyping(false); // Reset typing when chat changes
+    }
+  }, [selectedConversation?._id, setMessage]);
+
+  // Emit typing indicators on input changes
+  const handleMessages = (e) => {
+    setSendData(e.target.value);
+    if (socket && selectedConversation) {
+      socket.emit("typing", { receiverId: selectedConversation._id });
+      
+      // Debounce stopTyping
+      if (window.typingTimeout) clearTimeout(window.typingTimeout);
+      window.typingTimeout = setTimeout(() => {
+        socket.emit("stopTyping", { receiverId: selectedConversation._id });
+      }, 1500);
+    }
+  };
+
+  // Send message
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!sendData.trim()) return;
+    
+    setSending(true);
+    // Instantly stop typing indicator
+    if (socket && selectedConversation) {
+      socket.emit("stopTyping", { receiverId: selectedConversation._id });
+    }
+    
+    try {
+      const res = await axios.post(`/api/message/send/${selectedConversation?._id}`, { messages: sendData });
+      const data = await res.data;
+      if (data.success === false) {
+        console.log(data.message);
+      } else {
+        setSendData('');
+        setShowEmoji(false);
+        setMessage([...messages, data]);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  // Clear conversation history
+  const handleClearConversation = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.delete(`/api/message/clear/${selectedConversation?._id}`);
+      if (response.data.success) {
+        setMessage([]);
+        toast.info("Conversation cleared successfully");
+      } else {
+        toast.error("Failed to clear chat");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error clearing chat");
+    } finally {
+      setLoading(false);
+      setShowClearModal(false);
+    }
+  };
+
+  const isUserOnline = selectedConversation && onlineUser?.includes(selectedConversation._id);
+
+  return (
+    <div className="md:min-w-[500px] h-full flex flex-col relative overflow-hidden bg-gradient-to-br from-[#071321] via-[#0c243c] to-[#143a5e] text-white">
+      
+      {selectedConversation === null ? (
+        // Empty State UI
+        <div className='flex items-center justify-center w-full h-full px-4 text-center'>
+          <div className='max-w-md p-8 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl animate-fade-in flex flex-col items-center gap-4'>
+            <div className="p-4 bg-sky-500/10 rounded-full border border-sky-500/20 text-sky-400">
+              <RiMessage3Fill className='text-5xl animate-pulse'/>
+            </div>
+            <h2 className='text-2xl font-bold text-white'>Welcome, {authUser?.username}! 👋</h2>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              Select a friend from the side menu or look them up to start sending messages in real-time.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Active Chat Header */}
+          <div className="flex items-center justify-between bg-white/5 border-b border-white/10 backdrop-blur-md px-4 h-16 shadow-lg z-10">
+            <div className="flex items-center gap-3 w-full justify-between">
+              <div className="flex items-center gap-3">
+                {/* Mobile back button */}
+                <div className='md:hidden'>
+                  <button onClick={() => onBackUser(true)} className='p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition text-white'>
+                    <IoArrowBackSharp size={20} />
+                  </button>
+                </div>
+
+                {/* Profile Avatar + Online indicator */}
+                <div className="relative cursor-pointer">
+                  <img
+                    src={selectedConversation?.profilepic || "/avatar.png"}
+                    alt="user"
+                    className="w-10 h-10 rounded-full object-cover border border-white/20"
+                  />
+                  {isUserOnline && (
+                    <span className="absolute bottom-0 right-0 h-3 w-3 bg-lime-500 border-2 border-[#0c243c] rounded-full"></span>
+                  )}
+                </div>
+
+                {/* Username and Online state subtitle */}
+                <div className="flex flex-col">
+                  <span className="text-white font-bold text-sm md:text-base leading-tight">
+                    {selectedConversation?.username}
+                  </span>
+                  <span className="text-[10px] md:text-xs text-gray-400">
+                    {isUserOnline ? (
+                      <span className="text-lime-400 font-semibold flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 bg-lime-400 rounded-full animate-ping"></span>
+                        Active Now
+                      </span>
+                    ) : (
+                      "Offline"
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Clear conversation action */}
+              <button
+                onClick={() => setShowClearModal(true)}
+                title="Clear Chat History"
+                className="p-2 rounded-xl bg-red-500/10 hover:bg-red-600 transition text-red-400 hover:text-white border border-red-500/20 duration-200"
+              >
+                <BsTrash size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Messages Scrolling Grid */}
+          <div className='flex-1 overflow-y-auto px-4 py-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent'>
+            {loading && (
+              <div className="flex justify-center items-center h-full">
+                <div className="loading loading-spinner text-sky-400 scale-125"></div>
+              </div>
+            )}
+
+            {!loading && messages?.length === 0 && (
+              <div className="flex items-center justify-center h-48 text-center px-6">
+                <div className="bg-white/5 border border-white/5 px-6 py-4 rounded-2xl max-w-xs text-gray-400 text-xs">
+                  Say hello! Send a message to start your conversation with {selectedConversation?.username}.
+                </div>
+              </div>
+            )}
+
+            {!loading && messages?.length > 0 && messages?.map((message) => {
+              const isMe = message.senderId === authUser._id;
+              const msgDate = new Date(message.createdAt);
+              const formattedTime = msgDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+              return (
+                <div
+                  className={`flex ${isMe ? 'justify-end' : 'justify-start'} w-full animate-fade-in`}
+                  key={message?._id}
+                  ref={lastMessageRef}
+                >
+                  <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                    <div
+                      className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                        isMe
+                          ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white rounded-tr-none'
+                          : 'bg-white/10 border border-white/5 text-gray-100 rounded-tl-none backdrop-blur-sm'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap break-words">{message.message}</p>
+                    </div>
+                    <span className="text-[9px] text-gray-400 mt-1 opacity-80 px-1 font-medium">
+                      {formattedTime}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Bouncing Dots Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start w-full animate-fade-in">
+                <div className="flex flex-col items-start">
+                  <div className="bg-white/10 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 flex gap-1.5 items-center shadow-sm backdrop-blur-sm">
+                    <span className="h-2 w-2 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                    <span className="h-2 w-2 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                    <span className="h-2 w-2 bg-sky-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  </div>
+                  <span className="text-[8px] text-sky-400 mt-1 font-semibold pl-1">
+                    {selectedConversation?.username} is typing...
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Emoji Picker container */}
+          {showEmoji && (
+            <div ref={emojiPickerRef} className="absolute bottom-16 left-4 z-50 shadow-2xl rounded-2xl border border-white/10 overflow-hidden animate-fade-in">
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                height={350}
+                width={300}
+                theme="dark"
+                searchDisabled
+              />
+            </div>
+          )}
+
+          {/* Typing Form & Actions Bottom Area */}
+          <form onSubmit={handleSubmit} className="p-3 bg-white/5 border-t border-white/10 backdrop-blur-md flex items-center gap-2">
+            <div className="flex-1 flex items-center bg-white/10 border border-white/10 rounded-full px-3 py-1 focus-within:border-sky-500/50 focus-within:shadow-[0_0_12px_rgba(14,165,233,0.15)] transition duration-300">
+              <button
+                type="button"
+                onClick={() => setShowEmoji(!showEmoji)}
+                className="p-1.5 text-gray-400 hover:text-sky-400 transition"
+              >
+                <BsEmojiSmile size={20} />
+              </button>
+
+              <input
+                value={sendData}
+                onChange={handleMessages}
+                required
+                id="message"
+                type="text"
+                autoComplete="off"
+                className="flex-1 bg-transparent border-none outline-none text-white text-sm px-3 py-1.5 placeholder-gray-400"
+                placeholder="Type your message..."
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={sending || !sendData.trim()}
+              className="p-3 bg-sky-500 hover:bg-sky-600 active:scale-95 text-white rounded-full transition shadow-md flex-shrink-0 flex items-center justify-center disabled:opacity-50 disabled:active:scale-100"
+            >
+              {sending ? (
+                <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <IoSend size={18} />
+              )}
+            </button>
+          </form>
+
+          {/* Modern Glass Confirmation Modal for Clear Chat */}
+          {showClearModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <div className="bg-[#0b1b2d]/90 border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl backdrop-blur-xl animate-fade-in text-white">
+                <h3 className="text-lg font-bold mb-2">Clear Conversation?</h3>
+                <p className="text-gray-300 text-xs leading-relaxed mb-5">
+                  Are you sure you want to delete all messages with <span className="font-semibold text-sky-400">"{selectedConversation?.username}"</span>? This action cannot be undone and will permanently wipe the chat history.
+                </p>
+                <div className="flex justify-end gap-3 text-xs">
+                  <button
+                    onClick={() => setShowClearModal(false)}
+                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition border border-white/10 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleClearConversation}
+                    className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 transition font-bold border border-red-500/20"
+                  >
+                    Clear History
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
-//typing or not
-useEffect(() => {
-  socket?.on("typing", () =>setIsTyping(true));
-  socket?.on("stopTyping", () =>setIsTyping(false));
-  return () =>{
-    socket?.off("typing");
-    socket?.off("stopTyping");
-  };
-}, [socket]);
-
-//jb message receive hoga
-   useEffect(()=>{
-     socket?.on("newMessage",(newMessage)=>{
-       const sound = new Audio(notify);
-       sound.play();
-       setMessage([...messages,newMessage])
-      })
-    return ()=> socket?.off("newMessage");
-   },[socket,setMessage,messages])
-
-   // auto scroll ke liye
-   useEffect(()=>{
-      setTimeout(()=>{
-       lastMessageRef?.current?.scrollIntoView({behavior:"smooth"})
-       },100)
-    },[messages])
-
-// message ko fetch krne ke liye
-   useEffect(() =>{
-      const getMessages = async()=>{
-      setLoading(true);
-        try{
-          const get = await axios.get(`/api/message/${selectedConversation?._id}`);
-          const data = await get.data;
-           if (data.success === false){
-            setLoading(false);
-            console.log(data.message);
-           }
-            setLoading(false);
-            setMessage(data);
-          }catch(error){
-            setLoading(false);
-            console.log(error);
-          }
-       }
-
-       if (selectedConversation?._id) getMessages();
-        }, [selectedConversation?._id, setMessage])
-        console.log(messages);
-
-        
-        
-// typing emit show
-   const handelMessages=(e)=>{
-     setSnedData(e.target.value);
-     socket.emit("typing", { receiverId: selectedConversation._id });
-      setTimeout(() => {
-      socket.emit("stopTyping", { receiverId: selectedConversation._id });
-  },1000);
-      }
-
-      // send message ke liye..
- const handelSubmit=async(e)=>{
-   e.preventDefault();
-   setSending(true);
-     try{
-      const res =await axios.post(`/api/message/send/${selectedConversation?._id}`,{messages:sendData});
-      const data = await res.data;
-      if (data.success === false){
-        setSending(false);
-        console.log(data.message);
-     }
-      setSending(false);
-      setSnedData('');
-      setShowEmoji(false);
-        setMessage([...messages,data])
-      }catch (error) {
-        setSending(false);
-        console.log(error);
-   }
- }
-
- return (
-//chat backround
-<div className="md:min-w-[500px] h-full flex flex-col py-2 relative overflow-hidden
-bg-gradient-to-br from-[#0a2540] via-[#0f3d5e] to-[#1e5fa3]">
-
-{/* // chat jb empty state me hoga */}
-
-   {selectedConversation === null ? (
-    <div className='flex items-center justify-center w-full h-full px-4'>
-      <div className='px-4 text-center text-2xl text-gray-950 font-semibold 
-                flex flex-col items-center gap-2'>
-     <p className='text-2xl'>Welcome!!👋 {authUser.username}😉</p>
-        <p className="text-lg">Select a chat to start messaging</p>
-     <RiMessage3Fill className='text-6xl text-center'/>
-       </div>
-     </div>
-   ) : (
-     <>
-
-     {/* chat screen ka header */}
-<div className="flex items-center justify-between bg-sky-600 px-2 rounded-t-lg h-14 shadow">
-  <div className="flex items-center gap-3 w-full">
-    
-     <div className='md:hidden ml-1 self-center'>
-         <button onClick={() =>onBackUser(true)} className='bg-white p-1 rounded-full shadow'>
-         <IoArrowBackSharp size={25} color='black'
-         />
-     </button>
-    </div>
-
-     {/* Profile + Name */}
-    <div className="flex items-center gap-2">
-      <img
-        src={selectedConversation?.profilepic || "/avatar.png"}
-        alt="user"
-        className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover border-2 border-white"
-      />
-      <span className="text-white font-semibold text-sm md:text-lg">
-        {selectedConversation?.username}
-      </span>
-    </div>
-  </div>
-</div>
-
-    {/* message ke liye   */}
- <div className='flex-1 overflow-auto'>
-                      
-   {loading && (
-    <div className="flex justify-center items-center h-full">
-      <div className="loading loading-spinner text-sky-600"></div>
-    </div>
-   )}
-
-
-  {!loading && messages?.length === 0 && (
-     <p className='text-center text-white items-center'>Send a message to 
-     start Conversation</p>
-   )}
-
-   {!loading && messages?.length > 0 && messages?.map((message) =>(
-  
-     <div className='text-white' key={message?._id} ref={lastMessageRef}>
-       <div className={`chat ${message.senderId === authUser._id ? 'chat-end' : 'chat-start'}`}>
-         <div className='chat-image avatar'></div>
-         <div className={`chat-bubble ${message.senderId === authUser._id ? 'bg-sky-600':''
-   }`}>
-     {message.message}
-   
-   </div>
-   <div className="chat-footer text-[10px] opacity-80">
-     {new Date(message?.createdAt).toLocaleDateString('en-IN')}{' '}
-     {new Date(message?.createdAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute:
-        'numeric'})}
-   </div>
- </div>
-    </div>
-  ))}
- </div>
- 
- {isTyping &&(
- <div className="px-4 py-1 animate-pulse">
-    <span className="text-base font-medium text-sky-300 italic">  
-  {selectedConversation?.username} is typing...
-  </span>
-  </div>
-)}
-
-{showEmoji && (
-  <div className="absolute bottom-14 left-4 z-50">
-    <EmojiPicker
-      onEmojiClick={handleEmojiClick}
-      height={350}
-      width={300}
-      theme="dark"
-    />
-  </div>
-)}
-
-
- <form onSubmit={handelSubmit} className='rounded-full text-black flex items-center gap-2 bg-white px-3 py-1 mx-4 mb-2'>
-  
-{/* emoji ke liye */}
-<div className='w-[98%] mx-auto rounded-full flex items-center bg-white '>
-  <button type="button"
- onClick={() => setShowEmoji(!showEmoji)}
- className="px-2">
-  <BsEmojiSmile size={25} className="text-gray-600 hover:text-sky-600" />
-</button>
-
-   <input value={sendData} onChange={handelMessages} required id='message' type='text' 
-  className='w-full bg-transparent outline-none px-4 py-1 rounded-full'
-  />
-
-
-{/* send button */}
-    <button type="submit">
-      {sending ? (
-        <div className="loading loading-spinner text-sky-600 "></div>
-      ) : (
-        <IoSend size={28}
-          className="text-white bg-sky-600 rounded-full p-1 hover:bg-sky-700"
-        />
-      )}
-    </button>
-     </div>
-     </form>
-   </>
-    )}
-
-  </div>
-    )
-}
-
-export default MessageContainer
+export default MessageContainer;
