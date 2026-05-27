@@ -6,8 +6,8 @@ import jwtToken from "../utils/jwtwebToken.js";
 export const userRegister=async(req,res)=>{
     try{
         const{fullname,username,email,gender,password,profilepic}=req.body;
-        const user = await User.findOne({username,email});
-        if(user) return res.status(500).send({success:false,message:"UserName or Email Already Exist "});
+        const user = await User.findOne({ $or: [{ username }, { email }] });
+        if (user) return res.status(400).send({ success: false, message: "Username or Email already exists" });
         const hashPassword= bcryptjs.hashSync(password,10);
        const profileBoy= profilepic || `https://avatar.iran.liara.run/public/boy?username=${username}_${Math.floor(Math.random() * 10000)}`;
        const profileGirl= profilepic || `https://avatar.iran.liara.run/public/girl?username=${username}_${Math.floor(Math.random() * 10000)}`;

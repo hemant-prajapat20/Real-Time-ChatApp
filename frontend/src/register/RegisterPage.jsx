@@ -16,20 +16,21 @@ const Register = ()=> {
      })
     }
 
-  console.log(inputData);
+      // Removed console.log for security
 
-  const selectGender=(selectGender)=>{
-   setInputData((prev)=>({
-    ...prev ,gender:selectGender === inputData.gender ? '' : selectGender
-     }))
-    }
+  const selectGender = (selectGender) => {
+    setInputData((prev) => ({
+      ...prev,
+      gender: selectGender === inputData.gender ? '' : selectGender,
+    }));
+  };
 
-   const handelSubmit=async(e)=>{
-     e.preventDefault();
-     setLoading(true)
-     if(inputData.password !== inputData.confpassword.toLowerCase()){
-      setLoading(false)
-      return toast.error("Password Dosen't match")
+  const handelSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    if (inputData.password !== inputData.confpassword) {
+      setLoading(false);
+      return toast.error("Passwords do not match");
     }
 
    try {
