@@ -43,71 +43,53 @@ const handelSubmit = async(e)=>{
     }
 
 
- return(
-<div className='flex flex-col items-center justify-center mix-w-full mx-auto'>
-<div className='w-full p-6 rounded-lg shadow-lg bg-gray-400 bg-clip-padding
-                backderop-filter backdrop-blur-lg bg-opacity-0'>
+  return(
+    <div className='flex flex-col items-center justify-center min-w-full mx-auto p-4'>
+      <div className='w-full max-w-md p-6 rounded-lg shadow-xl bg-gray-400 bg-clip-padding backdrop-blur-lg bg-opacity-25'>
+        <h1 className='text-3xl font-bold text-center text-gray-300 mb-4'>
+          Login <span className='text-gray-950'>Chatters</span>
+        </h1>
+        <form onSubmit={handelSubmit} className='flex flex-col gap-4'>
+          <div>
+            <label className='block text-gray-950 font-semibold'>Email:</label>
+            <input
+              id='email'
+              type='email'
+              onChange={handelInput}
+              placeholder='Enter your email'
+              required
+              className='w-full input input-bordered h-10 p-2 text-white mt-1'
+            />
+          </div>
+          <div>
+            <label className='block text-gray-950 font-semibold'>Password:</label>
+            <input
+              id='password'
+              type='password'
+              onChange={handelInput}
+              placeholder='Enter your password'
+              required
+              className='w-full input input-bordered h-10 p-2 text-white mt-1'
+            />
+          </div>
+          <button
+            type='submit'
+            className='mt-4 w-full bg-gray-950 hover:bg-gray-900 text-white text-lg py-2 rounded-lg transition transform hover:scale-105 disabled:opacity-50'
+            disabled={loading}
+          >
+            {loading ? "loading.." : "Login"}
+          </button>
+        </form>
+        <p className='mt-4 text-center text-sm text-gray-800'>
+          Don't have an account?{' '}
+          <Link to='/register' className='text-gray-950 font-bold underline hover:text-green-950'>
+            Register Now!!
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 
- <h1 className='text-3xl font-bold text-center text-gray-300'>Login
-   <span className='text-gray-950'> Chatters </span>
- </h1>
-        
-        
-<form onSubmit={handelSubmit} className='flex flex-col text-black m-2 gap-4'>
-  <div>
-    <label className='label p-2'>
-    <span className='font-bold text-gray-950 text-xl label-text'>Email :</span>
-    </label>
-
- <input
-   id='email'
-   type='email'
-   onChange={handelInput}
-   placeholder='Enter your email'
-   required
-   className='w-full input input-bordered h-10 p-2 text-white' />
-</div>
-
-
-<div>
-    <label className='label p-2' >
-     <span className='font-bold text-gray-950 text-xl label-text'>Password :</span>
-    </label>
-   <input
-      id='password'
-      type='password'
-      onChange={handelInput}
-      placeholder='Enter your password'
-      required
-      className='w-full input input-bordered h-10 p-2  text-white' 
-      />
- </div>
-
- <button type='submit'
-     className='mt-4 self-center 
-     w-auto px-2 py-1 bg-gray-950 
-     text-lg hover:bg-gray-900 
-     text-white rounded-lg hover: scale-105'>
-     {loading ? "loading..":"Login"}
-      </button>
- </form>
-
- <div className='pt-2'>
-     <p className='text-sm font-semibold
-      text-gray-800'>
-      Don't have an Acount ? <Link to={'/register'}>
-        <span
-         className='text-gray-950 font-bold underline cursor-pointer hover:text-green-950'>
-         Register Now!!
-       </span>
-    </Link>
-     </p>
-     </div>
-
-
-   </div>
-  </div>
- )
 }
 
 export default Login

@@ -53,9 +53,8 @@ const Register = ()=> {
     }
 
  return (
-   <div className='flex flex-col items-center justify-center mix-w-full mx-auto'>
-   <div className='w-full p-6 rounded-lg shadow-lg bg-gray-400 bg-clip-padding
-            backderop-filter backdrop-blur-lg bg-opacity-25'>
+    <div className='flex flex-col items-center justify-center min-w-full mx-auto p-4'>
+      <div className='w-full max-w-md p-6 rounded-lg shadow-xl bg-gray-400 bg-clip-padding backdrop-blur-lg bg-opacity-25'>
   <h1 className='text-3xl font-bold text-center text-gray-300'>Register
    <span className='text-gray-950'> Chatters </span>
   </h1>

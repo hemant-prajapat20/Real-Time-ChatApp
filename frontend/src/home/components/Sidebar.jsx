@@ -23,7 +23,6 @@ const Sidebar = ({ onSelectUser }) => {
   
   // Custom Logout Modal state
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [logoutConfirmInput, setLogoutConfirmInput] = useState("");
   
   const { messages, selectedConversation, setSelectedConversation } = userConversation();
   const { onlineUser, socket } = useSocketContext();
@@ -176,11 +175,6 @@ const Sidebar = ({ onSelectUser }) => {
   };
 
   const executeLogout = async () => {
-    if (logoutConfirmInput !== authUser.username) {
-      toast.error("Incorrect username");
-      return;
-    }
-
     setLoading(true);
     try {
       const response = await axios.post('/api/auth/logout');
@@ -198,7 +192,6 @@ const Sidebar = ({ onSelectUser }) => {
     } finally {
       setLoading(false);
       setShowLogoutModal(false);
-      setLogoutConfirmInput("");
     }
   };
 
@@ -243,7 +236,7 @@ const Sidebar = ({ onSelectUser }) => {
           </button>
         </form>
 
-        <div className="relative group cursor-pointer" onClick={() => navigate(`/profile/${authUser?._id}`)}>
+        <div className="relative group">
           <img
             src={authUser?.profilepic || "/avatar.png"}
             alt='My Profile'
@@ -420,20 +413,12 @@ const Sidebar = ({ onSelectUser }) => {
           <div className="bg-[#0b1b2d]/90 border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl backdrop-blur-xl animate-fade-in text-white">
             <h3 className="text-lg font-bold mb-2">Confirm Logout</h3>
             <p className="text-gray-300 text-xs leading-relaxed mb-4">
-              Are you sure you want to logout? Please type your username <span className="font-semibold text-orange-400">"{authUser.username}"</span> below to finalize.
+              Are you sure you want to logout?
             </p>
-            <input
-              type="text"
-              placeholder="Type username here"
-              value={logoutConfirmInput}
-              onChange={(e) => setLogoutConfirmInput(e.target.value)}
-              className="w-full px-4 py-2.5 mb-4 bg-white/5 border border-white/15 rounded-xl text-white outline-none focus:border-sky-500 transition placeholder-gray-500 text-sm"
-            />
             <div className="flex justify-end gap-3 text-xs">
               <button
                 onClick={() => {
                   setShowLogoutModal(false);
-                  setLogoutConfirmInput("");
                 }}
                 className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition border border-white/10 font-semibold"
               >
