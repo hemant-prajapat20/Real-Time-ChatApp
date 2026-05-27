@@ -42,6 +42,27 @@ const MessageContainer = ({ onBackUser }) => {
     setSendData(prev => prev + emojiData.emoji);
   };
 
+  const formatIndianDateTime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const now = new Date();
+    
+    const timeStr = date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const dateStr = date.toLocaleDateString('en-IN');
+    
+    if (date.toDateString() === now.toDateString()) {
+      return timeStr;
+    }
+    
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) {
+      return `Yesterday, ${timeStr}`;
+    }
+    
+    return `${dateStr}, ${timeStr}`;
+  };
+
   // Socket: typing state
   useEffect(() => {
     socket?.on("typing", () => setIsTyping(true));
@@ -252,8 +273,6 @@ const MessageContainer = ({ onBackUser }) => {
 
             {!loading && messages?.length > 0 && messages?.map((message) => {
               const isMe = message.senderId === authUser._id;
-              const msgDate = new Date(message.createdAt);
-              const formattedTime = msgDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
               return (
                 <div
@@ -272,7 +291,7 @@ const MessageContainer = ({ onBackUser }) => {
                       <p className="whitespace-pre-wrap break-words">{message.message}</p>
                     </div>
                     <span className="text-[9px] text-gray-400 mt-1 opacity-80 px-1 font-medium">
-                      {formattedTime}
+                      {formatIndianDateTime(message.createdAt)}
                     </span>
                   </div>
                 </div>

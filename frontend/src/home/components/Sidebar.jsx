@@ -214,7 +214,7 @@ const Sidebar = ({ onSelectUser }) => {
     const now = new Date();
 
     if (date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+      return date.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
     }
 
     const yesterday = new Date(now);
@@ -223,7 +223,7 @@ const Sidebar = ({ onSelectUser }) => {
       return "Yesterday";
     }
 
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('en-IN');
   };
 
   return (
