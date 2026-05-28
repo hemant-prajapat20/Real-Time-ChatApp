@@ -18,7 +18,7 @@ const handelInput =(e)=>{
       ...userInput,[e.target.id]: e.target.value
   })
 }
-console.log(userInput);
+
 const handelSubmit = async(e)=>{
   e.preventDefault();
   setLoading(true)
@@ -27,7 +27,7 @@ const handelSubmit = async(e)=>{
     const data = login.data;
     if (data.success === false){
        setLoading(false)
-       Console.log(data.message);
+       // Removed console log
     }
     toast.success(data.message)
     localStorage.setItem('chatapp',JSON.stringify(data));
@@ -37,7 +37,7 @@ const handelSubmit = async(e)=>{
    } 
    catch(error){
     setLoading(false)
-    console.log(error);
+    // Removed console log
     toast.error(error?.response?.data?.message)
        }
     }

@@ -9,8 +9,8 @@ export const userRegister=async(req,res)=>{
         const user = await User.findOne({ $or: [{ username }, { email }] });
         if (user) return res.status(400).send({ success: false, message: "Username or Email already exists" });
         const hashPassword= bcryptjs.hashSync(password,10);
-       const profileBoy= profilepic || `https://avatar.iran.liara.run/public/boy?username=${username}_${Math.floor(Math.random() * 10000)}`;
-       const profileGirl= profilepic || `https://avatar.iran.liara.run/public/girl?username=${username}_${Math.floor(Math.random() * 10000)}`;
+        const profileBoy = profilepic || `https://avatars.dicebear.com/api/initials/${username}.svg`;
+        const profileGirl = profilepic || `https://avatars.dicebear.com/api/initials/${username}.svg`;
        
        const newUser= new User({
         fullname,
